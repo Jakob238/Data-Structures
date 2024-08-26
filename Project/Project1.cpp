@@ -31,7 +31,7 @@ class SparseMatrix {
         SparseRow* myMatrix; //Array
     public:
     SparseMatrix ();
-    SparseMatrix (int n, int m, int cv);
+    SparseMatrix (int n, int m, int cv, int nsv);
     
     SparseMatrix* Transpose (); //Matrix Transpose
     SparseMatrix* Multiply (SparseMatrix& M);
@@ -101,11 +101,11 @@ SparseMatrix::SparseMatrix(){
     noNonSparseValues = 0;
 }
 
-SparseMatrix::SparseMatrix(int n, int m, int cv){
+SparseMatrix::SparseMatrix(int n, int m, int cv, int nsv){
     noRows = n;
     noCols = m;
     commonValue = cv;
-    noNonSparseValues = 0;
+    noNonSparseValues =nsv;
 }
 
 // Matrix Operations

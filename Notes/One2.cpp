@@ -12,15 +12,26 @@ class Point{
     Point& operator = (Point& P); //overloaded assigment operator
     //display
     void display();
+    //overloaded operaotr
+    Point& operator+ (Point& P);
     //destructor
     ~Point();
 
 };
 
-Point& Point::operator =(Point& P){
+Point& Point::operator=(Point& P){
     x = P.x;
     y = P.y;
 }
+
+Point& Point::operator+(Point& P){
+    Point temp (0,0);
+    // Point* temp = new Point(0,0);
+    temp.x = x + P.x;
+    temp.y = y + P.y;
+    return temp;
+}
+
 
 
 Point::Point(Point& P){
@@ -30,7 +41,7 @@ Point::Point(Point& P){
 
 
 Point::~Point(){
-    cout << " The point is (" << x << ", " << y << ") was killed" << endl; 
+    std::cout << " The point is (" << x << ", " << y << ") was killed" << endl; 
 }
 
 
@@ -57,6 +68,7 @@ int main(){
     Point aPoint(10,20); // statically defined
     Point bPoint; // statically defined
     Point* pointPtr; // statically defined
+    Point dPoint;
     Point* cPoint; // statically defined
 
 
@@ -72,6 +84,7 @@ int main(){
     cPoint = new Point(10,33);
 
     aPoint =  bPoint = *cPoint; 
+    dPoint = aPoint + bPoint;
 
     return 0;
 }
