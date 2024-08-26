@@ -10,17 +10,16 @@ class SparseRow {
     public:
     SparseRow(); //default constructor; row=-1;col=-1;value=0
     void display(); // print Row#, Column#, value
+    
     friend ostream& operator<<(ostream& s, const SparseRow& sr);
-
-    //Getters
-    int getRow() const {return row;}
-    int getCol() const {return col;}
-    int getValue() const {return value;}
-
-    //Setters
-    void setRow(int r) {row = r;}
-    void setCol(int c) {col = c;}
-    void setValue(int v) {value = v;}
+    
+    int getRow() const;
+    int getCol() const;
+    int getValue() const;
+    
+    void setRow(int r);
+    void setCol(int c);
+    void setValue(int v);
 };
 
 class SparseMatrix {
@@ -69,6 +68,28 @@ ostream& operator<<(ostream& s, const SparseRow& sr) {
     return s;
 }
 
+//Getters
+int SparseRow::getRow() const {
+    return row;
+}
+int SparseRow::getCol() const {
+    return col;
+}
+int SparseRow::getValue() const {
+    return value;
+}
+
+//Setters
+void SparseRow::setRow(int r) {
+    row = r;
+}
+void SparseRow::setCol(int c) {
+    col = c;
+}
+void SparseRow::setValue(int v) {
+    value = v;
+}
+
 
 
 // SparseMatrix methods
@@ -86,7 +107,6 @@ SparseMatrix::SparseMatrix(int n, int m, int cv){
     commonValue = cv;
     noNonSparseValues = 0;
 }
-
 
 // Matrix Operations
 SparseMatrix* Transpose (){
@@ -118,6 +138,14 @@ void SparseMatrix::displayMatrix(){
     }
 }
 
+// Getters
+
+
+// Setters
+
+
+
+
 
 
 
@@ -136,21 +164,21 @@ int main () {
     SparseMatrix* secondOne = new SparseMatrix(n, m, cv, noNSV);
     
     //Write the Statements to read in the second matrix
-    cout << “First one in matrix format” << endl;
+    cout << "First one in matrix format" << endl;
     (*firstOne).displayMatrix();
-    cout << “First one in sparse matrix format” << endl;
+    cout << "First one in sparse matrix format" << endl;
     cout << (*firstOne);
-    cout << “Second one in matrix format” << endl;
+    cout << "Second one in matrix format" << endl;
     (*secondOne).displayMatrix();
-    cout << “Second one in sparse matrix format” << endl;
+    cout << "Second one in sparse matrix format" << endl;
     cout << (*secondOne);
-    cout << “Transpose of the first one in matrix” << endl;
+    cout << "Transpose of the first one in matrix" << endl;
     cout << (*(*firstOne).Transpose());
-    cout << “Matrix Addition Result” << endl;
+    cout << "Matrix Addition Result" << endl;
     temp = (*(*firstOne).Addition(secondOne));
     cout << temp;
     (*temp).displayMatrix();
-    cout << “Matrix Multiplication Result” << endl;
+    cout << "Matrix Multiplication Result" << endl;
     temp = (*(*firstOne).Multiply(secondOne));
     cout << temp;
     (*temp).displayMatrix();
