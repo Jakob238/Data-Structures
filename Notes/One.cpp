@@ -1,6 +1,7 @@
 #include <iostream>
 using namespace std;
-
+// What is the Profesor's name?
+// Sridhar Radhakrishnan
 
 /*
 int x=100;
@@ -38,6 +39,7 @@ int main(){
     
 }
 */
+// use txt file to run
 // cd Notes
 // g++ One.cpp -o One
 // Get-Content One.txt | .\One.exe
