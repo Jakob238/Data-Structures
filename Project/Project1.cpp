@@ -73,7 +73,7 @@ void SparseRow::display(){
 }
 
 ostream& operator<<(ostream& s, const SparseRow& sr) {
-    s << " " << sr.row << ", " << sr.col << ", " << sr.value;
+    s << "" << sr.row << ", " << sr.col << ", " << sr.value;
     return s;
 }
 
@@ -151,10 +151,15 @@ for (int i = 0; i < noRows; ++i) {
 
 // Matrix Operations
 
-// fix this transpose
+
 SparseMatrix* SparseMatrix::Transpose (){
+// Creates a new SparseMatrix with transposed dimensions
 SparseMatrix* transposed = new SparseMatrix(noCols, noRows, commonValue, noNonSparseValues);
+
+// Iterates through each non-zero entry in the original matrix
 for (int i = 0; i < noNonSparseValues; ++i) {
+
+    // Sets the transposed row and column to be the column and row of the original matrix
     transposed->myMatrix[i].setRow(myMatrix[i].getCol());
     transposed->myMatrix[i].setCol(myMatrix[i].getRow());
     transposed->myMatrix[i].setValue(myMatrix[i].getValue());
@@ -163,44 +168,74 @@ return transposed;
 }
 
 
-
-// fix this multiplication
 SparseMatrix* SparseMatrix::Multiply (SparseMatrix& M){
-if (noCols != M.noRows) {
-    cout << "Matrix multiplication is not possible" << endl;
-    return nullptr;
-}
 
-// int maxSize = noNonSparseValues * M.noNonSparseValues; // Overestimate
+    // Check if matrix multiplication is possible
+    if (noCols != M.noRows || commonValue != M.commonValue){
+        cout << "Matrix multiplication is not possible" << endl;
+        return nullptr;
+    }
+    
+    // Initialize the result matrix with an estimated size
+    SparseMatrix* result = new SparseMatrix(noRows, M.noCols, commonValue, noNonSparseValues * M.noNonSparseValues);
 
-SparseMatrix* result = new SparseMatrix(noRows, M.noCols, commonValue, 0);
+    // Initialize a temporary result matrix to hold intermediate result
+    SparseRow* tempResult = new SparseRow[noRows * M.noCols];
+    int* tempCount = new int[noRows * M.noCols]();
+    
+    // Iterate through each non-zero entry in the first matrix
+    for (int i = 0; i < noNonSparseValues; ++i) {
+        int rowA = myMatrix[i].getRow();
+        int colA = myMatrix[i].getCol();
+        int valueA = myMatrix[i].getValue();
 
-int count = 0;
-for (int i = 0; i < noNonSparseValues; ++i) {
-    for (int j = 0; j < M.noNonSparseValues; ++j) {
-        if (myMatrix[i].getCol() == M.myMatrix[j].getRow()) {
-            int r = myMatrix[i].getRow();
-            int c = M.myMatrix[j].getCol();
-            int value = myMatrix[i].getValue() * M.myMatrix[j].getValue();
-            bool found = false;
-            for (int k = 0; k < count; ++k) {
-                if (result->myMatrix[k].getRow() == r && result->myMatrix[k].getCol() == c) {
-                    result->myMatrix[k].setValue(result->myMatrix[k].getValue() + value);
-                    found = true;
-                    break;
-                }
-            }
+        // Iterate through each non-zero entry in the second matrix
+        for (int j = 0; j < M.noNonSparseValues; ++j) {
+            int rowB = M.myMatrix[j].getRow();
+            int colB = M.myMatrix[j].getCol();
+            int valueB = M.myMatrix[j].getValue();
 
-            if (!found && value != commonValue) {
-                 result->myMatrix[count++] = SparseRow(r, c, value);
+            // Check if columns of A match rows of B
+            if (colA == rowB) {
+                int rowR = rowA;
+                int colR = colB;
+                int valueR = valueA * valueB;
+
+                // Calculate index for the result matrix
+                int index = rowR * M.noCols + colR;
+
+                // Accumulate result values
+                tempResult[index].setRow(rowR);
+                tempResult[index].setCol(colR);
+                tempResult[index].setValue(tempResult[index].getValue() + valueR);
+                tempCount[index]++;
             }
         }
     }
+
+    // Copy results from tempResult to the result matrix
+    int count = 0;
+    for (int i = 0; i < noRows * M.noCols; ++i) {
+        if (tempCount[i] > 0 && tempResult[i].getValue() != commonValue) {
+            if (count >= result->noNonSparseValues) {
+                cout << "Error: result matrix out of bounds!" << endl;
+                delete[] tempResult;
+                delete[] tempCount;
+                delete result;
+                return nullptr;
+            }
+            result->myMatrix[count++] = tempResult[i];
+        }
+    }
+
+    result->noNonSparseValues = count; // Update the count of non-zero entries
+
+    delete[] tempResult;
+    delete[] tempCount;
+
+    return result;
 }
 
-result->noNonSparseValues = count;
-return result;
-}
 
 
 // fix this addition
@@ -223,10 +258,12 @@ if (noRows != M.noRows || noCols != M.noCols || commonValue != M.commonValue) {
             }
             i++;
             j++;
-        } else if ((myMatrix[i].getRow() < M.myMatrix[j].getRow()) ||
+        } 
+        else if ((myMatrix[i].getRow() < M.myMatrix[j].getRow()) ||
                    (myMatrix[i].getRow() == M.myMatrix[j].getRow() && myMatrix[i].getCol() < M.myMatrix[j].getCol())) {
             result->myMatrix[result->noNonSparseValues++] = myMatrix[i++];
-        } else {
+        } 
+        else {
             result->myMatrix[result->noNonSparseValues++] = M.myMatrix[j++];
         }
     }
