@@ -238,18 +238,19 @@ SparseMatrix* SparseMatrix::Multiply (SparseMatrix& M){
 
 
 
-// fix this addition
 SparseMatrix* SparseMatrix::Addition (SparseMatrix& M){
+// Check if matrix addition is possible
 if (noRows != M.noRows || noCols != M.noCols || commonValue != M.commonValue) {
     cout << "Matrix addition is not possible" << endl;
     return nullptr;
 }
 
-// Allocate enough space in the result matrix for the worst-case scenario
+    // Allocate enough space in the result matrix for the worst-case scenario
     SparseMatrix* result = new SparseMatrix(noRows, noCols, commonValue, noNonSparseValues + M.noNonSparseValues);
     result->noNonSparseValues = 0; // Initialize the count of non-sparse values
 
     int i = 0, j = 0;
+    // Iterate through both matrices and add corresponding element
     while (i < noNonSparseValues && j < M.noNonSparseValues) {
         if (myMatrix[i].getRow() == M.myMatrix[j].getRow() && myMatrix[i].getCol() == M.myMatrix[j].getCol()) {
             int sumValue = myMatrix[i].getValue() + M.myMatrix[j].getValue();
@@ -279,8 +280,9 @@ if (noRows != M.noRows || noCols != M.noCols || commonValue != M.commonValue) {
     return result;
 }
 
-// fix this ostream
+
 ostream& operator<< (ostream& s, const SparseMatrix& sm){
+// Iterate through each non-zero entry in the matrix and output it
 for(int i=0; i<sm.noNonSparseValues; i++){
     s << sm.myMatrix[i] << endl;
 }
@@ -290,17 +292,20 @@ return s;
 // Display
 void SparseMatrix::displayMatrix(){
 int count = 0;
+// Iterate through each element of the matrix
     for (int i = 0; i < noRows; ++i) {
         for (int j = 0; j < noCols; ++j) {
+            // If there's a non-zero value at this position, output it
             if (count < noNonSparseValues && myMatrix[count].getRow() == i && myMatrix[count].getCol() == j) {
                 cout << myMatrix[count].getValue() << " ";
                 ++count;
             } 
             else{
+                // Output the common value for sparse elements
                 cout << commonValue << " ";
                 }
         }
-        cout << endl;
+        cout << endl; // end line after each row
     }
 }
 
