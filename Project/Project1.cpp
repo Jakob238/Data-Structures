@@ -6,7 +6,7 @@ class SparseRow {
     protected:
         int row; //Row#
         int col; //Column#
-        int value; //We will assume that all our values will be integers
+        int value; //Values
     public:
     SparseRow(); //default constructor; row=-1;col=-1;value=0
     SparseRow(int r, int c, int v); //constructor with arguments
@@ -25,9 +25,9 @@ class SparseRow {
 
 class SparseMatrix {
     protected:
-        int noRows; //Number of rows of the original matrix
-        int noCols; //Number of columns of the original matrix
-        int commonValue; //read from input
+        int noRows; //#Rows of the original matrix
+        int noCols; //#Columns of the original matrix
+        int commonValue; //Value
         int noNonSparseValues;
         SparseRow* myMatrix; //Array
     public:
@@ -36,23 +36,17 @@ class SparseMatrix {
     ~SparseMatrix();
 
     SparseMatrix* Transpose (); //Matrix Transpose
-    SparseMatrix* Multiply (SparseMatrix& M);
-    SparseMatrix* Addition (SparseMatrix& M);
+    SparseMatrix* Multiply (SparseMatrix& M); // Matrix Multiplication
+    SparseMatrix* Addition (SparseMatrix& M); // Matrix Addiiton
     
     friend ostream& operator<< (ostream& s, const SparseMatrix& sm);
-    void displayMatrix (); //Display the matrix in its original format
+    void displayMatrix (); //Displays the matrix in its original format
     void readMatrix();
 };
 
 
-
-
-
-
-
-
-
 // SparseRow methods
+
 // Constructor
 SparseRow::SparseRow(){
     row = -1;
@@ -100,11 +94,8 @@ void SparseRow::setValue(int v) {
 }
 
 
-
-
-
-
 // SparseMatrix methods
+
 // Constructors
 SparseMatrix::SparseMatrix(){
     noRows = 0;
@@ -149,10 +140,10 @@ for (int i = 0; i < noRows; ++i) {
 }
 }
 
+
 // Matrix Operations
-
-
 SparseMatrix* SparseMatrix::Transpose (){
+
 // Creates a new SparseMatrix with transposed dimensions
 SparseMatrix* transposed = new SparseMatrix(noCols, noRows, commonValue, noNonSparseValues);
 
@@ -239,6 +230,7 @@ SparseMatrix* SparseMatrix::Multiply (SparseMatrix& M){
 
 
 SparseMatrix* SparseMatrix::Addition (SparseMatrix& M){
+
 // Check if matrix addition is possible
 if (noRows != M.noRows || noCols != M.noCols || commonValue != M.commonValue) {
     cout << "Matrix addition is not possible" << endl;
@@ -291,6 +283,7 @@ return s;
 
 // Display
 void SparseMatrix::displayMatrix(){
+
 int count = 0;
 // Iterate through each element of the matrix
     for (int i = 0; i < noRows; ++i) {
@@ -310,18 +303,9 @@ int count = 0;
 }
 
 
-
-
-
-
-
-
-
-
-
-
 //Main Method
 int main () {
+
     int n, m, cv, noNSV;
     SparseMatrix* temp;
     
@@ -369,3 +353,98 @@ int main () {
     
     return 0;
 }
+
+
+
+
+
+/*
+LLM Documentation
+
+Prompt 1: Provide me a guide about using redirected Input, a way to send a file to the standard input of a program
+without typing it using the keyboard, to visual studio code. 
+
+Answer: Here's a step-by-step guide to setting up redirected input in Visual Studio Code (VSCode) for a C++ program that reads input from a file:
+1. Create/Open a C++ Project in VSCode
+Open Visual Studio Code.
+If you don’t have a project already, create a new directory and open it in VSCode.
+Add a new C++ file (e.g., main.cpp) where you'll write your code.
+2. Write the C++ Program
+3. Create an Input File
+Create a text file (e.g., input.txt) in the same directory as your C++ file.
+Add the input data for the matrix. 
+4. Configure VSCode for Redirected Input
+In VSCode, click on the Run and Debug icon on the sidebar or press Ctrl+Shift+D to open the Debug panel.
+Click on create a launch.json file if you don't have one already.
+In the launch.json file, you will configure your debugging settings.
+Modify the args property in the launch.json file to use redirected input:
+
+json
+Copy code
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C++: g++.exe build and debug active file",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}.exe",
+            "args": ["<", "input.txt"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++: g++.exe build active file",
+            "miDebuggerPath": "gdb",
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true
+            },
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}
+5. Run and Debug
+Save the launch.json file.
+Go back to the Debug panel and click on the green play button (Start Debugging).
+The program will run, reading the matrix from input.txt, and output the result.
+6. Check Output
+The output should be displayed in the terminal or an external console, depending on your launch.json settings.
+This setup will allow your C++ program to take input from a file, as if the user had typed it directly into the console.
+
+
+
+
+
+Explanation: In order to use redirected input, I needed to be able to to create a configuration within the json file . 
+When I finished creating a configuration for each of the input files, I was able to begin the debugging process by 
+testing each of the input files. Since the instructions said that I couldn't use the keyboard to input the data, this
+step was neccessary in order to complete the task.
+
+
+*/
+
+
+
+/*
+Debugging
+
+For the test, I used the following input files: input1, input2, input3, input4, and inpu5. Then, I ran the program with the 
+redirected input configuration. The program was able to read the input from the files and output the results. Finally, I compared
+the output with the expected results in order to verify the correctness of the program. Initially, I had some issues with the
+matrix multiplication  and addition functions, but I was able to resolve them by carefully checking the logic and making the necessary 
+corrections. For both matrix multiplication and addition, I needed to add a condition to check if that Check if matrix multiplication/addition
+is possible. If it is not possible, the program should output a message and return nullptr. This helped to handle cases where the
+matrices were not compatible for multiplication or addition. After making these changes, the program was able to handle all test cases.
+
+
+*/
