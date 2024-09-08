@@ -7,14 +7,15 @@ class SparseRow {
     protected:
         int row; //Row#
         int col; //Column#
-        int value; //Values
+        int value; //Value
     public:
-    SparseRow(); //default constructor
-    SparseRow(int r, int c, int v); //constructor with arguments
-    void display(); // print Row#, Column#, value
+    SparseRow(); //Default Constructor
+    SparseRow(int r, int c, int v); //Constructor with Arguments
+    void display(); // Print Row#, Column#, value
     
     friend ostream& operator<<(ostream& s, const SparseRow& sr);
     
+    // Getters and Setters
     int getRow() const;
     int getCol() const;
     int getValue() const;
@@ -33,7 +34,7 @@ class SparseMatrix {
         SparseRow* myMatrix; //Matrix
     public:
     SparseMatrix (); // default constructor
-    SparseMatrix (int n, int m, int cv, int nsv); // constructor with arguments
+    SparseMatrix (int n, int m, int cv, int nsv); // Constructor with Arguments
     ~SparseMatrix();
 
     SparseMatrix* Transpose (); //Matrix Transpose
@@ -175,25 +176,26 @@ SparseMatrix* SparseMatrix::Multiply (SparseMatrix& M){
     SparseRow* tempResult = new SparseRow[noRows * M.noCols];
     int* tempCount = new int[noRows * M.noCols]();
     
-    // Iterate through each non-zero entry in the first matrix
+    // Iterates through each non-sparse entry in the first matrix
     for (int i = 0; i < noNonSparseValues; ++i) {
         int row1 = myMatrix[i].getRow();
         int col1 = myMatrix[i].getCol();
         int value1 = myMatrix[i].getValue();
 
-        // Iterate through each non-zero entry in the second matrix
+        // Iterates through each non-sparse entry in the second matrix
         for (int j = 0; j < M.noNonSparseValues; ++j) {
             int row2 = M.myMatrix[j].getRow();
             int col2 = M.myMatrix[j].getCol();
             int value2 = M.myMatrix[j].getValue();
 
-            // Check if columns of A match rows of B
+            // Checks if the columns of matrix 1 match rows of matrix 2
             if (col1 == row2) {
                 int rowRes = row1;
                 int colRes = col2;
                 int valueRes = value1 * value2;
 
-                // Calculate index for the result matrix by using number of columns, temp row, and temp column.
+                // Calculates index for the result matrix by using number of columns, temp row, and temp column.
+                // This finds the position/ index of the resulting element in the temporary tempResult array.
                 int index = rowRes * M.noCols + colRes;
 
                 // Accumulate result values
@@ -205,7 +207,7 @@ SparseMatrix* SparseMatrix::Multiply (SparseMatrix& M){
         }
     }
 
-    // Copy results from tempResult to the result matrix
+    // Copies results from tempResult to the result matrix
     int count = 0;
     for (int i = 0; i < noRows * M.noCols; ++i) {
         if (tempCount[i] > 0 && tempResult[i].getValue() != commonValue) {
@@ -220,10 +222,10 @@ SparseMatrix* SparseMatrix::Multiply (SparseMatrix& M){
         }
     }
 
-    // First one in sparse matrix format
+    // Sets the count of non-sparse values in the result matrix
     result->noNonSparseValues = count; 
 
-    // Finally, delete the temporary arrays
+    // Finally, it is neccessary to delete the temporary arrays
     delete[] tempResult;
     delete[] tempCount;
 
@@ -232,25 +234,25 @@ SparseMatrix* SparseMatrix::Multiply (SparseMatrix& M){
 
 // Addition Matrix
 SparseMatrix* SparseMatrix::Addition (SparseMatrix& M){
-    // Check if matrix addition is possible
+    // Checks if matrix addition is possible
     if (noRows != M.noRows || noCols != M.noCols || commonValue != M.commonValue) {
         cout << "Matrix addition is not possible" << endl;
         return nullptr;
     }
 
-    // Allocate enough space in the result matrix for each scenario
+    // Allocates enough space in the result matrix for each scenario
     SparseMatrix* result = new SparseMatrix(noRows, noCols, commonValue, noNonSparseValues + M.noNonSparseValues);
     result->noNonSparseValues = 0; // Initializes the count of non-sparse values
 
     int i = 0, j = 0;
 
-    // Iterate through both matrices as long as there are non-zero elements
+    // Iterates through both matrices as long as there are non-zero elements
     // Additionally, it adds a corresponding element
     while (i < noNonSparseValues && j < M.noNonSparseValues) {
         if (myMatrix[i].getRow() == M.myMatrix[j].getRow() && myMatrix[i].getCol() == M.myMatrix[j].getCol()) {
-            int sumValue = myMatrix[i].getValue() + M.myMatrix[j].getValue();
-            if (sumValue != commonValue) {
-                result->myMatrix[result->noNonSparseValues++] = SparseRow(myMatrix[i].getRow(), myMatrix[i].getCol(), sumValue);
+            int sum = myMatrix[i].getValue() + M.myMatrix[j].getValue();
+            if (sum != commonValue) {
+                result->myMatrix[result->noNonSparseValues++] = SparseRow(myMatrix[i].getRow(), myMatrix[i].getCol(), sum);
             }
             i++;
             j++;
@@ -264,7 +266,7 @@ SparseMatrix* SparseMatrix::Addition (SparseMatrix& M){
         }
     }
 
-    // Copy the remaining elements from the matrices
+    // Copies the remaining elements from the matrices
     while (i < noNonSparseValues) {
         result->myMatrix[result->noNonSparseValues++] = myMatrix[i++];
     }
@@ -276,7 +278,7 @@ SparseMatrix* SparseMatrix::Addition (SparseMatrix& M){
 }
 
 ostream& operator<< (ostream& s, const SparseMatrix& sm){
-    // Iterate through each non-zero entry in the matrix and output it
+    // Iterates through each non-zero entry in the matrix and output it
     for(int i=0; i<sm.noNonSparseValues; i++){
         s << sm.myMatrix[i] << endl;
     }
@@ -286,10 +288,10 @@ ostream& operator<< (ostream& s, const SparseMatrix& sm){
 // Display
 void SparseMatrix::displayMatrix(){
     int count = 0;
-    // Iterate through each element of the matrix
+    // Iterates through each element of the matrix
     for (int i = 0; i < noRows; ++i) {
         for (int j = 0; j < noCols; ++j) {
-            // If there's a non-zero value at this position, output it
+            // If there's a non-zero value at this position, it will output it
             if (count < noNonSparseValues && myMatrix[count].getRow() == i && myMatrix[count].getCol() == j) {
                 cout << myMatrix[count].getValue() << " ";
                 ++count;
@@ -299,7 +301,7 @@ void SparseMatrix::displayMatrix(){
                 cout << commonValue << " ";
                 }
         }
-        cout << endl; // End line after each row
+        cout << endl; // Ensures that there is an end line after each row
     }
 }
 
@@ -310,12 +312,12 @@ int main () {
     int n, m, cv, noNSV;
     SparseMatrix* temp;
     
-    //Write the Statements to read in the first matrix
+    //Writes the Statements to read in the first matrix
     cin >> n >> m >> cv >> noNSV;
     SparseMatrix* firstOne = new SparseMatrix(n, m, cv, noNSV);
     firstOne->readMatrix();
 
-    //Write the Statements to read in the second matrix
+    //Writes the Statements to read in the second matrix
     cin >> n >> m >> cv >> noNSV;
     SparseMatrix* secondOne = new SparseMatrix(n, m, cv, noNSV);
     secondOne->readMatrix();
@@ -349,6 +351,7 @@ int main () {
         temp->displayMatrix();
         delete temp;
     }
+
     cout.flush();
 
     delete firstOne;
@@ -365,7 +368,8 @@ int main () {
 LLM Documentation
 
 Prompt 1: Provide me a guide about using redirected Input, a way to send a file to the standard input of a program
-without typing it using the keyboard, to visual studio code.  (NOTE THIS IS NOT THE CORRECT WAY TO DO IT, I USED THE VIDEO LECTURE LATER)
+without typing it using the keyboard, to visual studio code.  
+(NOTE THIS IS NOT THE CORRECT WAY TO DO IT, I USED THE VIDEO LECTURE LATER)
 
 Answer: Here's a step-by-step guide to setting up redirected input in Visual Studio Code (VSCode) for a C++ program that reads input from a file:
 1. Create/Open a C++ Project in VSCode
@@ -428,7 +432,8 @@ This setup will allow your C++ program to take input from a file, as if the user
 My Explanation: In order to use redirected input, I needed to be able to to create a configuration within the json file . 
 When I finished creating a configuration for each of the input files, I was able to begin the debugging process by 
 testing each of the input files. Since the instructions said that I couldn't use the keyboard to input the data, this
-step was neccessary in order to complete the task.
+step was neccessary in order to complete the task. However, I later learned that this was not the correct way to do file redirection, 
+so I watched the video lecture in order to learn the correct way to do it.
 
 
 
@@ -495,14 +500,15 @@ values stored in your objects.
 
 
 My Explanation: For the project, it was necessary to learn the purpose of a ostream operator and how it works in order to complete the 
-project in a readable format. It is important to overload the << operator in order to print the SparseRow and SparseMatrix objects . 
+project in a readable format. It is important to overload the << operator in order to print the SparseRow and SparseMatrix objects. 
+After understanding the purpose of the ostream operator, I was able to implement the operator in both of the classes in order to
+print the objects in the correct format.
 
 
 Prompt 3: Explain how to create a multiply function using the signature SparseMatrix* SparseMatrix::Multiply (SparseMatrix& M.
 
 Answer: The Multiply function in the SparseMatrix class is designed to perform matrix multiplication between the current matrix and 
 another sparse matrix M. Here’s a detailed breakdown of how it works:
-
 Pre-checks for Multiplication Validity: The function first ensures that matrix multiplication is feasible by checking if the number 
 of columns in the current matrix (noCols) matches the number of rows in matrix M (M.noRows). It also verifies that both matrices 
 share the same value type (commonValue). If these conditions are not met, it prints an error message and returns nullptr, indicating 
@@ -528,7 +534,8 @@ the multiplication conditions are met, while maintaining efficiency by working w
 
 My explanation: The multiply function was one of the most important functions in the project. It was necessary to understand how to
 implement the matrix multiplication logic in order to complete the project. Since I was having issues with the creation of the mulitplication
-function, I asked for clear steps in order to understand the necessary requirements for the function.
+function, I asked for clear steps in order to understand the necessary requirements for the function. For example, I learned the importance of 
+using the temporary arrays, because  I was able to store the intermediate results and then copy the results into the result matrix. 
 */
 
 
@@ -540,12 +547,13 @@ For the test, I used the following input files: input1, input2, input3, input4, 
 redirected input configuration. The program was able to read the input from the files and output the results. Finally, I compared
 the output with the expected results in order to verify the correctness of the program. Initially, I had some issues with the
 matrix multiplication  and addition functions, but I was able to resolve them by carefully checking the logic and making the necessary 
-corrections. For both matrix multiplication and addition, I needed to add a condition to check if that Check if matrix multiplication/addition
-is possible. If it is not possible, the program should output a message and return nullptr. This helped to handle cases where the
-matrices were not compatible for multiplication or addition. After making these changes, the program was able to handle all test cases. 
-Another issue I had was with redirecting the input files, it took me a while to figure out how to do it, but the video helped me to
-finish that part of the project. Finally, I had to flush the cout stream in order to display the output correctly. After making these
-changes, my program was able to read the input from the files, perform the matrix operations, and output the results as expected.
+corrections. For both matrix multiplication and addition, I needed to add a condition to check if that would check if 
+matrix multiplication/addition is possible. If it was not possible, the program should output a message and return nullptr. 
+This helped to handle cases where the matrices were not compatible for multiplication or addition. After making these changes, 
+the program was able to handle all test cases.  Another issue I had was with redirecting the input files, it took me a while to 
+figure out how to do it, but the video helped me to finish that part of the project. Finally, I had to flush the cout stream in order to
+display the output correctly. After making these changes, my program was able to read the input from the files, perform the matrix 
+operations, and output the results as expected.
 
 
 */
