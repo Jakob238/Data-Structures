@@ -10,8 +10,9 @@ class Chip {
     Chip* output; // Ptr to the output chip (is NULL for output chips)
     double inputValue; //for the input chip
 public:
-    // Constructor
+    // Constructor and Decstructor
     Chip(char type, const string& id);
+    ~Chip();
     // Method prototypes
     void setInput1(Chip* inputChip); // Sets the first input chip
     void setInput2(Chip* inputChip); // second input chip (can be NULL)
@@ -27,8 +28,7 @@ public:
 
 
 // Constructor
-Chip::Chip(char type, const string& id)
-{
+Chip::Chip(char type, const string& id){
     chipType = type;
     this->id = id;
     input1 = NULL;
@@ -36,16 +36,26 @@ Chip::Chip(char type, const string& id)
     output = NULL;
 }
 
+
+Chip::~Chip(){
+    if(!(input1 == NULL))
+        delete input1;
+    if(~(input2 == NULL))
+        delete input2;
+}
+
 // Method ProtoTypes
 
-void Chip::setInput1(Chip* inputChip)
-{
+void Chip::setInput1(Chip* inputChip){
     input1 = inputChip;
 }
 
-void Chip::setInput2(Chip* inputChip)
-{
+void Chip::setInput2(Chip* inputChip){
     input2 = inputChip;
+}
+
+void Chip::setOutput(Chip* outputChip) {
+    output = outputChip;
 }
 
 
