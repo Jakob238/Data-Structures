@@ -45,7 +45,7 @@ Chip::Chip(char type, const string& id){
 Chip::~Chip(){
     if(!(input1 == NULL))
         delete input1;
-    if(~(input2 == NULL))
+    if(!(input2 == NULL))
         delete input2;
 }
 
@@ -181,7 +181,6 @@ int main () {
     //**** ALL THE VARIABLES YOU NEED FOR THIS MAIN FUNCTION *****//
     string chipID;
     string type;
-    int id;
     int numChips;
     int numCommands;
     double output;
@@ -306,7 +305,7 @@ int main () {
 
 
     //Flush the output
-    std::cout.flush();
+    cout.flush();
 
     //Deletes all the chips
     for (int i = 0; i < numChips; i++) {
