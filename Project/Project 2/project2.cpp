@@ -43,10 +43,10 @@ Chip::Chip(char type, const string& id){
 
 // Deconstructor
 Chip::~Chip(){
-    if(!(input1 == NULL))
-        delete input1;
-    if(!(input2 == NULL))
-        delete input2;
+    // if(!(input1 == NULL))
+    //     delete input1;
+    // if(!(input2 == NULL))
+    //     delete input2;
 }
 
 // Setters
@@ -185,6 +185,8 @@ int main () {
     int numCommands;
     double output;
     Chip** allChips;
+    int count =0;
+    string outputchipid;
     
     // Read the number of chips from input
     cin >> numChips;
@@ -197,10 +199,17 @@ int main () {
         //Read the chip ID
         cin >> chipID;
         char chipType = chipID[0];
-        //Create the chip object and initialize it appropriately and store it an array
-        allChips[i] = new Chip(chipType, chipID);
+        if(chipType == 'O'){
+            outputchipid = chipID;
+        }
+        else{
+             //Create the chip object and initialize it appropriately and store it an array
+            allChips[count] = new Chip(chipType, chipID);
+            count++;
+        }
     }
     
+    allChips[count] = new Chip('O', outputchipid);
 
     cin >> numCommands;
 
@@ -301,8 +310,6 @@ int main () {
         }
     }
     outputChip->display();
-    delete outputChip;
-
 
     //Flush the output
     cout.flush();
