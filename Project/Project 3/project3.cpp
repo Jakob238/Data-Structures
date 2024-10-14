@@ -39,6 +39,24 @@ public:
 
 template <class DT>
 class NovelQueue {
+
+private:
+    void updateNodePtrs(){
+        // Implementation for updating NodePtrs
+        delete[] NodePtrs;
+        NodePtrs = new Queue<DT>*[size];
+        Queue<DT>* temp = front;
+        for (int i = 0; i < size; ++i) {
+            NodePtrs[i] = temp;
+            temp = temp->next;
+        }
+    }
+    
+    int findJobIndex(int job_id) const
+    {
+        return 0;
+    }
+
 public:
     Queue<DT>* front; // Pointer to the front of the queue
     Queue<DT>** NodePtrs; // Array of pointers to Queue nodes
@@ -52,11 +70,20 @@ public:
         size = 0;
     }
     
+    ~NovelQueue() {
+        while (front != nullptr) {
+            Queue<DT>* temp = front;
+            front = front->next;
+            delete temp->JobPointer;
+            delete temp;
+        }
+        delete[] NodePtrs;
+    }
 
 
-    void enqueue(DT job){
-         // Create a new queue node
-        Queue<DT>* newNode = new Queue<DT>(job);
+    void enqueue(DT* job){
+             // Create a new queue node
+            Queue<DT>* newNode = new Queue<DT>(job);
         
         if (front == nullptr) {
             front = newNode;
@@ -68,130 +95,103 @@ public:
             }
             temp->next = newNode;
         }
-        updatePointers(newNode);
         size++;
+        updateNodePtrs();
     }
 
-    DT dequeue(){
-        if (front == nullptr) {
-            cout << "Queue is empty!" << endl;
+    DT* dequeue(){
+        if (front == nullptr){
             return nullptr;
-        }
+        } 
         Queue<DT>* temp = front;
         front = front->next;
         DT* job = temp->JobPointer;
         delete temp;
         size--;
+        updateNodePtrs();
         return job;
 
     }
 
     void modify(int job_id, int new_priority, int new_job_type, int new_cpu_time, int new_mem) {
-        Queue<DT>* temp = front;
-        while (temp != nullptr) {
-            if (temp->JobPointer->job_id == job_id) {
-                temp->JobPointer->priority = new_priority;
-                temp->JobPointer->job_type = new_job_type;
-                temp->JobPointer->cpu_time_consumed = new_cpu_time;
-                temp->JobPointer->memory_consumed = new_mem;
-                return;
-            }
-            temp = temp->next;
-        }
-        cout << "Job not found!" << endl;
+        int index = findJobIndex(job_id);
+        if (index == -1) return;
+        Queue<DT>* node = NodePtrs[index];
+        node->JobPointer->priority = new_priority;
+        node->JobPointer->job_type = new_job_type;
+        node->JobPointer->cpu_time_consumed = new_cpu_time_consumed;
+        node->JobPointer->memory_consumed = new_memory_consumed;
+        updateNodePtrs();
     }
 
     void change(int job_id, int field_index, int new_value) {
-        Queue<DT>* temp = front;
-        while (temp != nullptr) {
-            if (temp->JobPointer->job_id == job_id) {
-                switch (field_index) {
-                    case 1:
-                        temp->JobPointer->priority = new_value;
-                        break;
-                    case 2:
-                        temp->JobPointer->job_type = new_value;
-                        break;
-                    case 3:
-                        temp->JobPointer->cpu_time_consumed = new_value;
-                        break;
-                    case 4:
-                        temp->JobPointer->memory_consumed = new_value;
-                        break;
-                    default:
-                        cout << "Invalid field index!" << endl;
-                        return;
-                }
-                return;
-            }
-            temp = temp->next;
+        int index = findJobIndex(job_id);
+        if (index == -1) return;
+        Queue<DT>* node = NodePtrs[index];
+        switch (field_index) {
+            case 1: node->JobPointer->priority = new_value; break;
+            case 2: node->JobPointer->job_type = new_value; break;
+            case 3: node->JobPointer->cpu_time_consumed = new_value; break;
+            case 4: node->JobPointer->memory_consumed = new_value; break;
         }
-        cout << "Job not found!" << endl;
+        updateNodePtrs();
     }
 
     void promote(int job_id, int positions) {
-        Queue<DT>* temp = front;
-        Queue<DT>* prev = nullptr;
-        while (temp != nullptr) {
-            if (temp->JobPointer->job_id == job_id) {
-                if (prev == nullptr) {
-                    front = temp->next;
-                } else {
-                    prev->next = temp->next;
+        int index = findJobIndex(job_id);
+        if (index == -1) return;
+        Queue<DT>* node = NodePtrs[index];
+        if (index - positions < 0) {
+            // Move to the front
+            if (front != node) {
+                Queue<DT>* temp = front;
+                while (temp->next != node) {
+                    temp = temp->next;
                 }
-                break;
+                temp->next = node->next;
+                node->next = front;
+                front = node;
             }
-            prev = temp;
-            temp = temp->next;
-        }
-        if (temp == nullptr) {
-            cout << "Job not found!" << endl;
-            return;
-        }
-        Queue<DT>* current = front;
-        Queue<DT>* prev = nullptr;
-        while (current != nullptr && positions > 0) {
-            if (current->JobPointer->priority < temp->JobPointer->priority) {
-                break;
-            }
-            prev = current;
-            current = current->next;
-            positions--;
-        }
-        if (prev == nullptr) {
-            temp->next = front;
-            front = temp;
         } else {
-            prev->next = temp;
-            temp->next = current;
+            // Move up by positions
+            Queue<DT>* temp = front;
+            for (int i = 0; i < index - positions - 1; ++i) {
+                temp = temp->next;
+            }
+            Queue<DT>* prev = temp;
+            temp = temp->next;
+            prev->next = node->next;
+            node->next = temp;
+            prev->next = node;
         }
+        updateNodePtrs();
     }
 
     NovelQueue<DT>* reorder(int attribute_index) {
-        NovelQueue<DT>* reorderedQueue = new NovelQueue<DT>();
+        // Create a new NovelQueue
+        NovelQueue<DT>* newQueue = new NovelQueue<DT>();
+        // Copy the current queue to a vector
+        vector<DT*> jobs;
         Queue<DT>* temp = front;
         while (temp != nullptr) {
-            reorderedQueue->enqueue(*temp->JobPointer);
+            jobs.push_back(temp->JobPointer);
             temp = temp->next;
         }
-        switch (attribute_index) {
-            case 1:
-                reorderedQueue->sortPriority();
-                break;
-            case 2:
-                reorderedQueue->sortJobType();
-                break;
-            case 3:
-                reorderedQueue->sortCPUTime();
-                break;
-            case 4:
-                reorderedQueue->sortMemory();
-                break;
-            default:
-                cout << "Invalid attribute index!" << endl;
-                break;
+        // Sort the vector based on the specified attribute
+        sort(jobs.begin(), jobs.end(), [attribute_index](DT* a, DT* b) {
+            switch (attribute_index) {
+                case 1: return a->priority < b->priority;
+                case 2: return a->job_type < b->job_type;
+                case 3: return a->cpu_time_consumed < b->cpu_time_consumed;
+                case 4: return a->memory_consumed < b->memory_consumed;
+                default: return a->job_id < b->job_id;
+            }
+        });
+        // Enqueue the sorted jobs into the new queue
+        for (DT* job : jobs) {
+            newQueue->enqueue(new DT(*job));
         }
-        return reorderedQueue;
+        return newQueue;
     }
 
     void display() {
