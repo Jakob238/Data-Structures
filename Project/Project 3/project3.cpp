@@ -173,29 +173,35 @@ public:
             return;
         }
         Queue<DT>* node = NodePtrs[index];
-        if (index - positions < 0) {
-            // Move to the front
-            if (front != node) {
-                Queue<DT>* temp = front;
-                while (temp->next != node) {
-                    temp = temp->next;
+        Queue<DT>* temp = front;
+        if (node == front) {
+            for (int i = 0; i < positions; ++i) {
+                if (temp->next == nullptr) {
+                    break;
                 }
-                temp->next = node->next;
-                node->next = front;
-                front = node;
+                front = temp->next;
+                temp->next = front->next;
+                front->next = temp;
             }
         } 
         else {
-            // Move up by positions
-            Queue<DT>* temp = front;
-            for (int i = 0; i < index - positions - 1; ++i) {
+            Queue<DT>* prev = front;
+            for (int i = 0; i < size; ++i) {
+                if (temp->next == node) {
+                    break;
+                }
+                prev = temp;
                 temp = temp->next;
             }
-            Queue<DT>* prev = temp;
-            temp = temp->next;
-            prev->next = node->next;
-            node->next = temp;
-            prev->next = node;
+            for (int i = 0; i < positions; ++i) {
+                if (temp->next == nullptr) {
+                    break;
+                }
+                prev->next = temp->next;
+                temp->next = prev->next->next;
+                prev->next->next = temp;
+                prev = prev->next;
+            }
         }
         updateNodePtrs();
     }
@@ -354,7 +360,7 @@ int main() {
                 cout << "Promoted Job ID " << job_id << " by " << positions << " Position(s):" << endl;
                 myNovelQueue->NodePtrs[index]->JobPointer->display();
                 cout << "Jobs after promotion:" << endl;
-                (*myNovelQueue).listJobs();
+                (*myNovelQueue).display();
             }
             else{
                 cout << "Job with ID " << job_id << " not found in the queue." << endl;
@@ -364,7 +370,7 @@ int main() {
         case 'O': { // Reorder
             cin >> attribute_index;
             NovelQueue<CPUJob*>* reorderedQueue = (*myNovelQueue).reorder(attribute_index);
-            cout << "Reordered Queue:" << endl;
+            cout << "Reordered Queue by attribute:" << "attribute_index" << endl;
             (*reorderedQueue).display();
             break;
         }
@@ -389,10 +395,6 @@ int main() {
             cout << "Invalid command!" << endl;
         }
     }
-
-    delete myNovelQueue; // Clean up the NovelQueue after all operations
-    return 0;
-
 }
 
 

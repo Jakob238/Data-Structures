@@ -1,4 +1,5 @@
 # include <iostream>
+# include <string>
 using namespace std;
 
 class CPUJob {
@@ -51,17 +52,31 @@ private:
             NodePtrs[i] = temp;
             temp = temp->next;
         }
+
+        // Bubble sort to sort NodePtrs based on job_id
+        for (int i = 0; i < size - 1; ++i) {
+            for (int j = 0; j < size - i - 1; ++j) {
+                if (NodePtrs[j]->JobPointer->job_id > NodePtrs[j + 1]->JobPointer->job_id) {
+                    // Swap NodePtrs[j] and NodePtrs[j + 1]
+                    Queue<DT>* temp = NodePtrs[j];
+                    NodePtrs[j] = NodePtrs[j + 1];
+                    NodePtrs[j + 1] = temp;
+                }
+            }
+        }
     }
     
+public:
     int findJobIndex(int job_id) const
     {
-        // for (int i = 0; i < size; ++i) {
-        //     if (NodePtrs[i]->JobPointer->job_id == job_id) {
-        //         return i;
-        //     }
-        // }
-        // return -1; // Job not found
-        return 0;
+        for (int i = 0; i < size; ++i) {
+            if (NodePtrs[i]->JobPointer->job_id == job_id) {
+                return i;
+            }
+        }
+        return -1; // Job not found
+        
+        //return 0;
     }
     
 
@@ -90,8 +105,9 @@ public:
 
 
     void enqueue(DT job){
-             // Create a new queue node
-            Queue<DT>* newNode = new Queue<DT>(job);
+
+        // Create a new queue node
+        Queue<DT>* newNode = new Queue<DT>(job);
         
         if (front == nullptr) {
             front = newNode;
@@ -105,10 +121,12 @@ public:
         }
         size++;
         updateNodePtrs();
-    }
+    }   
+
 
     DT dequeue(){
-         if (front == nullptr){
+       
+       if (front == nullptr){
             return nullptr;
         } 
         Queue<DT>* temp = front;
@@ -118,23 +136,27 @@ public:
         size--;
         updateNodePtrs();
         return job;
-
     }
 
     void modify(int job_id, int new_priority, int new_job_type, int new_cpu_time, int new_mem) {
         int index = findJobIndex(job_id);
-        if (index == -1) return;
+        if (index == -1){
+            return;
+        }
         Queue<DT>* node = NodePtrs[index];
         node->JobPointer->priority = new_priority;
         node->JobPointer->job_type = new_job_type;
         node->JobPointer->cpu_time_consumed = new_cpu_time;
         node->JobPointer->memory_consumed = new_mem;
         updateNodePtrs();
+        
     }
 
     void change(int job_id, int field_index, int new_value) {
         int index = findJobIndex(job_id);
-        if (index == -1) return;
+        if (index == -1){
+            return;
+        }
         Queue<DT>* node = NodePtrs[index];
         switch (field_index) {
             case 1: node->JobPointer->priority = new_value; break;
@@ -146,34 +168,80 @@ public:
     }
 
     void promote(int job_id, int positions) {
-        int index = findJobIndex(job_id);
-        if (index == -1) return;
-        Queue<DT>* node = NodePtrs[index];
-        if (index - positions < 0) {
-            // Move to the front
-            if (front != node) {
-                Queue<DT>* temp = front;
-                while (temp->next != node) {
-                    temp = temp->next;
-                }
-                temp->next = node->next;
-                node->next = front;
-                front = node;
-            }
-        } 
-        else {
-            // Move up by positions
-            Queue<DT>* temp = front;
-            for (int i = 0; i < index - positions - 1; ++i) {
-                temp = temp->next;
-            }
-            Queue<DT>* prev = temp;
-            temp = temp->next;
-            prev->next = node->next;
-            node->next = temp;
-            prev->next = node;
+
+        if (positions <= 0 || !front) return;
+
+        Queue<DT>* current = front;
+        Queue<DT>* previous = nullptr;
+
+        // Find the job with the specified job_id
+        while (current && current->JobPointer->job_id != job_id) {
+            previous = current;
+            current = current->next;
         }
+
+        // If the job is not found, return
+        if (!current) {
+            return;
+        }
+
+        // If the job is already at the front, do nothing
+        if (!previous) {
+            return;
+        }
+
+        // Remove the job from its current position
+        previous->next = current->next;
+
+        // Move the job up by the specified number of positions
+        Queue<DT>* temp = front;
+        Queue<DT>* beforeNewPos = nullptr;
+        for (int i = 0; i < positions && temp != nullptr; ++i) {
+            beforeNewPos = temp;
+            temp = temp->next;
+        }
+
+        // If moving beyond the front, place at the front
+        if (positions >= 1) {
+            current->next = front;
+            front = current;
+        } else {
+            current->next = temp;
+            if (beforeNewPos != nullptr) {
+                beforeNewPos->next = current;
+            }
+        }
+
         updateNodePtrs();
+
+        
+        // int index = findJobIndex(job_id);
+        // if (index == -1){
+        //     return; // Job not found
+        // }
+
+        // Queue<DT>* node = NodePtrs[index];
+
+        // // If the job is already at the front, no need to promote
+        // if (front == node) {
+        //     return;
+        // }
+
+        // // Find the node before the one we want to promote
+        // Queue<DT>* temp = front;
+        // while (temp->next != node) {
+        //     temp = temp->next;
+        // }
+
+        // // Remove the node from its current position
+        // temp->next = node->next;
+
+        // // Move the node to the front of the queue
+        // node->next = front;
+        // front = node;
+
+        // // Update node pointers after promotion
+        // updateNodePtrs();
     }
 
     NovelQueue<DT>* reorder(int attribute_index) {
@@ -240,7 +308,6 @@ public:
     void listJobs() {
         for (int i = 0; i < size; ++i) {
             NodePtrs[i]->JobPointer->display();
-            cout << "Position in queue: " << i + 1 << endl;
         }
     }
 };
@@ -265,7 +332,6 @@ int main() {
     int positions;
     int attribute_index; // Variable for the 'Reorder' command
 
-    cout << "Start Enqueuing jobs:" << endl;
 
     for (int i = 0; i < n; ++i) {
 
@@ -276,16 +342,19 @@ int main() {
             cin >> cpu_time_consumed >> memory_consumed;
             CPUJob* newJob = new CPUJob(job_id, priority, job_type,
             cpu_time_consumed, memory_consumed);
+            cout << "Enqueued Job:" << endl;
             (*myNovelQueue).enqueue(newJob);
             (*newJob).display();
+            cout << "Jobs after enqueue:" << endl;
+            (*myNovelQueue).listJobs();
             break;
         }
         case 'R': { // Remove (Dequeue)
             CPUJob* removedJob = (*myNovelQueue).dequeue();
             if (removedJob) {
-            cout << "Dequeued Job: " << endl;
-            (*removedJob).display();
-            delete removedJob; // Clean up memory after use
+                cout << "Dequeued Job:" << endl;
+                (*removedJob).display();
+                delete removedJob; // Clean up memory after use
             }
             break;
         }
@@ -294,17 +363,46 @@ int main() {
             cin >> new_cpu_time_consumed >> new_memory_consumed;
             (*myNovelQueue).modify(job_id, new_priority, new_job_type,
             new_cpu_time_consumed, new_memory_consumed);
+            int index = myNovelQueue->findJobIndex(job_id);
+            if(index != -1){
+                cout << "Modified Job ID" << job_id << endl;
+                myNovelQueue->NodePtrs[index]->JobPointer->display();
+                cout << "Jobs after modification:" << endl;
+                (*myNovelQueue).listJobs();
+            }
+            else{
+                cout << "Job with ID " << job_id << " not found in the queue." << endl;
+            }
             break;
         }
         case 'C': { // Change Job Values
             cin >> job_id >> field_index >> new_value;
             (*myNovelQueue).change(job_id, field_index, new_value);
+            int index = myNovelQueue->findJobIndex(job_id);
+            if(index != -1){
+                cout << "Changed Job ID " << job_id << " field " << field_index << " to " << new_value << endl;
+                myNovelQueue->NodePtrs[index]->JobPointer->display();
+                cout << "Jobs after changing field:" << endl;
+                (*myNovelQueue).listJobs();
+            }
+            else{
+                cout << "Job with ID " << job_id << " not found in the queue." << endl;
+            }
             break;
         }
         case 'P': { // Promote
             cin >> job_id >> positions;
             (*myNovelQueue).promote(job_id, positions);
-            cout << "Promoted Job ID " << job_id << " by " << positions << " Position(s)" << endl;
+            int index = myNovelQueue->findJobIndex(job_id);
+            if(index != -1){
+                cout << "Promoted Job ID " << job_id << " by " << positions << " Position(s):" << endl;
+                myNovelQueue->NodePtrs[index]->JobPointer->display();
+                cout << "Jobs after promotion:" << endl;
+                (*myNovelQueue).listJobs();
+            }
+            else{
+                cout << "Job with ID " << job_id << " not found in the queue." << endl;
+            }
             break;
         }
         case 'O': { // Reorder
@@ -315,7 +413,10 @@ int main() {
             break;
         }
         case 'D': { // Display
+            cout << "Displaying all jobs in the queue:" << endl;
             (*myNovelQueue).display();
+            cout << "Jobs after dequeue:" << endl;
+            (*myNovelQueue).listJobs();
             break;
         }
         case 'N': { // Count
@@ -324,6 +425,7 @@ int main() {
             break;
         }
         case 'L': { // List Jobs
+        cout << "List of jobs in sorted order:" << endl;
             (*myNovelQueue).listJobs();
             break;
         }
@@ -331,13 +433,7 @@ int main() {
             cout << "Invalid command!" << endl;
         }
     }
-
-    delete myNovelQueue; // Clean up the NovelQueue after all operations
-    return 0;
-
 }
-
-
 
 /* LLM and GitHub Copilot Usage Documentation :
 
@@ -346,7 +442,9 @@ int main() {
 
 
 /* Debugging and Testing Plan :
-
+cd Project\Project 3
+g++ test.cpp
+a.exe < input1.txt
 */
 
 //cd Project\Project 3
