@@ -326,13 +326,20 @@ int main() {
         case 'A': { // Add (Enqueue)
             cin >> job_id >> priority >> job_type;
             cin >> cpu_time_consumed >> memory_consumed;
-            CPUJob* newJob = new CPUJob(job_id, priority, job_type,
-            cpu_time_consumed, memory_consumed);
-            cout << "Enqueued Job:" << endl;
-            (*myNovelQueue).enqueue(newJob);
-            (*newJob).display();
-            cout << "Jobs after enqueue:" << endl;
-            (*myNovelQueue).display();
+            int index = myNovelQueue->findJobIndex(job_id);
+            if(index == -1)
+            {
+                CPUJob* newJob = new CPUJob(job_id, priority, job_type,
+                cpu_time_consumed, memory_consumed);
+                cout << "Enqueued Job:" << endl;
+                (*myNovelQueue).enqueue(newJob);
+                (*newJob).display();
+                cout << "Jobs after enqueue:" << endl;
+                (*myNovelQueue).display();
+            }
+            else {
+                cout << "Job ID " << job_id << " already exists!" << endl;
+            }
             break;
         }
         case 'R': { // Remove (Dequeue)
@@ -344,15 +351,18 @@ int main() {
                  cout << "Jobs after dequeue:" << endl;
                 (*myNovelQueue).display();
             }
+            else{
+                cout << "Job with ID " << job_id << " not found in the queue." << endl;
+            }
             break;
         }
         case 'M': { // Modify
             cin >> job_id >> new_priority >> new_job_type;
             cin >> new_cpu_time_consumed >> new_memory_consumed;
-            (*myNovelQueue).modify(job_id, new_priority, new_job_type,
-            new_cpu_time_consumed, new_memory_consumed);
             int index = myNovelQueue->findJobIndex(job_id);
             if(index != -1){
+                (*myNovelQueue).modify(job_id, new_priority, new_job_type,
+                 new_cpu_time_consumed, new_memory_consumed);
                 cout << "Modified Job ID " << job_id << ":" << endl;
                 myNovelQueue->NodePtrs[index]->JobPointer->display();
                 cout << "Jobs after modification:" << endl;
@@ -365,9 +375,9 @@ int main() {
         }
         case 'C': { // Change Job Values
             cin >> job_id >> field_index >> new_value;
-            (*myNovelQueue).change(job_id, field_index, new_value);
             int index = myNovelQueue->findJobIndex(job_id);
             if(index != -1){
+                (*myNovelQueue).change(job_id, field_index, new_value);
                 cout << "Changed Job ID " << job_id << " field " << field_index << " to " << new_value << ":" << endl;
                 myNovelQueue->NodePtrs[index]->JobPointer->display();
                 cout << "Jobs after changing field:" << endl;
@@ -380,9 +390,9 @@ int main() {
         }
         case 'P': { // Promote
             cin >> job_id >> positions;
-            (*myNovelQueue).promote(job_id, positions);
             int index = myNovelQueue->findJobIndex(job_id);
             if(index != -1){
+                (*myNovelQueue).promote(job_id, positions);
                 cout << "Promoted Job ID " << job_id << " by " << positions << " Position(s):" << endl;
                 myNovelQueue->NodePtrs[index]->JobPointer->display();
                 cout << "Jobs after promotion:" << endl;
@@ -604,8 +614,6 @@ verify that the program was functioning correctly through following the debuggin
 
 
 */
-
-
 
 
 
