@@ -79,12 +79,21 @@ public:
     // Helper method to find the index of a job in the queue
     int findJobIndex(int job_id) const
     {
-        for (int i = 0; i < size; ++i) {
-            if (NodePtrs[i]->JobPointer->job_id == job_id) {
-                return i;
+        int low = 0, high = size - 1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2; // Calculate the middle index
+            if (NodePtrs[mid]->JobPointer->job_id == job_id) {
+                return mid; // Job found at index mid
+            } 
+            else if (NodePtrs[mid]->JobPointer->job_id < job_id) {
+                low = mid + 1; // Continue search in the right half
+            } 
+            else {
+                high = mid - 1; // Continue search in the left half
             }
         }
         return -1; // Job not found
+        
         
     }
 
