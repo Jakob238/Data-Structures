@@ -148,8 +148,8 @@ class MTree {
             //     insert(value);
             // }
 
-                if (input_values.size() <= M - 1) {
-            values = input_values;
+            if (input_values.size() <= M - 1) {
+                    values = input_values;
             } else {
             int D = input_values.size() / M;
             for (int i = 0; i < M; i++) {
