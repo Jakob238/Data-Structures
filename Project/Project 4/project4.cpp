@@ -252,7 +252,7 @@ int main() {
             cin >> value;
             try {
                 (*myTree).insert(value);
-                // mySortedValues.push_back(value);
+                mySortedValues.push_back(value);
             }
             catch (duplicateInsertion& e) {
                 cout << "The value = " << value <<  " already in the tree. " << endl;
@@ -266,13 +266,13 @@ int main() {
             try {
                 (*myTree).remove(value);
                 cout << "The value = " << value << " has been removed." << endl;
-                // for (auto it = mySortedValues.begin(); it != mySortedValues.end(); ) {
-                //     if (*it == value) {
-                //         it = mySortedValues.erase(it);  // Erase the element and move the iterator to the next
-                //     } else {
-                //         ++it;  // Otherwise, just move to the next element
-                //     }
-                // }
+                for (auto it = mySortedValues.begin(); it != mySortedValues.end(); ) {
+                    if (*it == value) {
+                        it = mySortedValues.erase(it);
+                    } else {
+                        ++it;
+                    }
+                } 
             }
             catch (NotFoundException& e) {
                 cout << "The value = " << value << " not found." << endl;
@@ -299,13 +299,13 @@ int main() {
         }
     }
 
-    // Final List
-    // for(int i =0; i < mySortedValues.size(); i++){
-    //     cout << mySortedValues[i] << " ";
-    //     if((i+1)%20 ==0){
-    //         cout << endl;
-    //     }
-    // }
+    cout << "Final list: ";
+    for (int i = 0; i < mySortedValues.size(); i++) {
+        cout << mySortedValues[i] << " ";
+        if ((i + 1) % 20 == 0) {
+            cout << endl;
+        }
+    }
 
     delete myTree;
     return 0;
