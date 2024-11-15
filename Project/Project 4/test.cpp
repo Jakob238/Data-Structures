@@ -145,13 +145,6 @@ class MTree {
                             // Delegate the removal to the child node
                             child->remove(value);
                             found = true;
-
-                            // Check and handle empty child nodes
-                            if (child->values.empty()) {
-                                delete child;
-                                child = nullptr; // Set to nullptr for consistency
-                            }
-
                             break;
                         } catch (const NotFoundException&) {
                             // Continue searching in other children
@@ -198,30 +191,18 @@ class MTree {
     }
         } 
         vector<DT>& collect_values(){  // Collect values from all leaf nodes
-            // vector<DT>* myValues = new vector<DT>();
-            // for(auto value : values){
-            //     myValues->push_back(value);
-            // }
-            // for(auto child : children){
-            //     vector<DT>& child_values = child->collect_values();
-            //     for(auto value : child_values){
-            //         myValues->push_back(value);
-            //     }
-            // }
-            // return *myValues;
-
-
             vector<DT>* myValues = new vector<DT>();
-            for (auto value : values) {
+            for(auto value : values){
                 myValues->push_back(value);
             }
-            for (auto child : children) {
+            for(auto child : children){
                 vector<DT>& child_values = child->collect_values();
-                for (auto value : child_values) {
+                for(auto value : child_values){
                     myValues->push_back(value);
                 }
             }
             return *myValues;
+
         }
 
         bool find (DT& value) const {
@@ -231,7 +212,7 @@ class MTree {
                 }
             }
             for (const auto& child : children) {
-                if (child != nullptr && child->find(value)) {
+                if (child->find(value)) {
                     return true;
                 }
             }
@@ -274,7 +255,7 @@ int main() {
                 mySortedValues.push_back(value);
             }
             catch (duplicateInsertion& e) {
-                cout << "The value = " << value <<  " already in the tree. " << endl;
+                cout << "The value = " << value <<  " already in the tree." << endl;
                 // continue;
             }
             break;
@@ -291,7 +272,7 @@ int main() {
                     } else {
                         ++it;
                     }
-                }  
+                } 
             }
             catch (NotFoundException& e) {
                 cout << "The value = " << value << " not found." << endl;
@@ -325,12 +306,10 @@ int main() {
             cout << endl;
         }
     }
-    cout << endl;
 
     delete myTree;
     return 0;
 }
-
 
 
 /*LLM and GitHub Copilot Usage Documentation :
@@ -347,11 +326,6 @@ Explanation:
 /* Debugging and Testing Plan :
 
 */
-
-
-
-
-
 
 /*
 cd Project\Project 4

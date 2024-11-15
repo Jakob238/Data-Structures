@@ -255,7 +255,7 @@ int main() {
                 mySortedValues.push_back(value);
             }
             catch (duplicateInsertion& e) {
-                cout << "The value = " << value <<  " already in the tree. " << endl;
+                cout << "The value = " << value <<  " already in the tree." << endl;
                 // continue;
             }
             break;
