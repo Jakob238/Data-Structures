@@ -334,3 +334,5 @@ g++ project4.cpp
 a.exe < input1.txt
 */
 
+
+// Finding GHost Variable 635 so check find method

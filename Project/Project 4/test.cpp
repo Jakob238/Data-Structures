@@ -145,6 +145,13 @@ class MTree {
                             // Delegate the removal to the child node
                             child->remove(value);
                             found = true;
+
+                            // Check and handle empty child nodes
+                            if (child->values.empty()) {
+                                delete child;
+                                child = nullptr; // Set to nullptr for consistency
+                            }
+
                             break;
                         } catch (const NotFoundException&) {
                             // Continue searching in other children
@@ -224,7 +231,7 @@ class MTree {
                 }
             }
             for (const auto& child : children) {
-                if (child->find(value)) {
+                if (child != nullptr && child->find(value)) {
                     return true;
                 }
             }
