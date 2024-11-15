@@ -161,6 +161,11 @@ class MTree {
             }
         } 
         void buildTree(vector<DT>& input_values){ // Build the tree from a sorted vector of values
+            values.clear();
+            for(int i = 0; i < children.size(); i++){
+                delete children[i];
+            }
+            children.clear();
 
             if (input_values.size() <= M - 1) {
                     values = input_values;
