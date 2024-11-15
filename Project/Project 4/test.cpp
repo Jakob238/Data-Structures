@@ -1,6 +1,8 @@
-#include <iostream>
 #include <vector>
+#include <iostream>
 using namespace std;
+
+// /***** Write your exception class here ******* SEE main function *****/
 
 class duplicateInsertion : public std::exception {
 public:
@@ -9,6 +11,8 @@ public:
     }
 };
 
+
+
 class NotFoundException : public std::exception {
 public:
     const char* what() const noexcept override {
@@ -16,198 +20,323 @@ public:
     }
 };
 
+
 template <typename DT>
 class MTree {
-protected:
-    int M; // Maximum number of children per node (M+1 way split)
-    vector<DT> values; // Values stored in the node (M-1 values)
-    vector<MTree*> children; // Pointers to child MTrees (M+1 children)
+    protected:
+        int M; // Maximum number of children per node (M+1 way split)
+        vector<DT> values; // Values stored in the node (M-1 values)
+        vector<MTree*> children; // Pointers to child MTrees (M+1 children)
 
-    void insert_sorted(DT value) {
-        auto it = values.begin();
-        while (it != values.end() && *it < value) {
-            ++it;
-        }
-        values.insert(it, value);
-    }
 
-public:
-    MTree(int M) : M(M) {}
-
-    ~MTree() {
-        for (int i = 0; i < children.size(); i++) {
-            delete children[i];
-        }
-    }
-
-    bool is_leaf() const { // Check if the current node is a leaf
-        return children.empty();
-    }
-
-    void insert(const DT& value) {
-         if (find(values.begin(), values.end(), value) != values.end()) {
-            throw duplicateInsertion();
-        }
-        values.push_back(value);
-    }
-
-    void remove(const DT& value) {
-         auto it = find(values.begin(), values.end(), value);
-        if (it != values.end()) {
-            values.erase(it);
-        }
-    }
-
-    void split_node() {
-        int midIndex = values.size() / 2;
-        DT midValue = values[midIndex];
-
-        // Create a new child node
-        MTree* newChild = new MTree(M);
-        for (int i = midIndex + 1; i < values.size(); ++i) {
-            newChild->values.push_back(values[i]);
-        }
-
-        values.resize(midIndex); // Keep only the first half in the current node
-
-        // If the current node is not a root, propagate the midValue to the parent
-        if (!is_leaf()) {
-            children.push_back(newChild);
-        }
-        // Otherwise, this node becomes a new root
-        if (values.size() == 0) {
-            values.push_back(midValue);
-            children.push_back(newChild);
-        } else {
-            int insertIndex = 0;
-            while (insertIndex < values.size() && midValue > values[insertIndex]) {
-                insertIndex++;
+        void insert_sorted(DT value) {
+            auto it = values.begin();
+            while (it != values.end() && *it < value) {
+                ++it;
             }
-            values.insert(values.begin() + insertIndex, midValue);
-            children.insert(children.begin() + insertIndex + 1, newChild);
+            values.insert(it, value);
         }
-    }
+    public:
+        MTree(int M){
+            this->M = M;
+        }
 
-    MTree* find_child(const DT& value) {
-        for (int i = 0; i < values.size(); ++i) {
-            if (value < values[i]) {
-                return children[i];
+        ~MTree(){
+            for (auto child : children) {
+                delete child;
             }
         }
-        return children[values.size()]; // Last child
-    }
 
-    bool search(const DT& value) {
+        bool is_leaf() const{ // Check if the current node is a leaf
+            return children.empty();
+        } 
+
+        void insert(const DT& value){ // Insert a value into the MTree
+            
+            if (search(value)) {
+                throw duplicateInsertion();
+
+            }
+
+            if (is_leaf()) {
+                insert_sorted(value);
+                if (values.size() >= M) {
+                    split_node(); // Split if needed
+                }
+            } 
+            else {
+                MTree* child = find_child(value);
+                child->insert(value);
+            }
+        }
+
+        void split_node(){ // Split the node if it exceeds capacity (i.e >=M)
+            int midIndex = values.size() / 2;
+            DT midValue = values[midIndex];
+
+            // Create a new child node
+            MTree* newChild = new MTree(M);
+            for (int i = midIndex + 1; i < values.size(); ++i) {
+                newChild->values.push_back(values[i]);
+            }
+
+            values.resize(midIndex); // Keep only the first half in the current node
+
+            // If the current node is not a root, propagate the midValue to the parent
+            if (!is_leaf()) {
+                children.push_back(newChild);
+            }
+            // Otherwise, this node becomes a new root
+            if (values.size() == 0) {
+                values.push_back(midValue);
+                children.push_back(newChild);
+            } 
+            else {
+                int insertIndex = 0;
+                while (insertIndex < values.size() && midValue > values[insertIndex]) {
+                    insertIndex++;
+                }
+                values.insert(values.begin() + insertIndex, midValue);
+                children.insert(children.begin() + insertIndex + 1, newChild);
+            }
+        } 
+
+        MTree* find_child(const DT& value){  // Find the correct child to follow
+            for (int i = 0; i < values.size(); ++i) {
+                if (value < values[i]) {
+                    return children[i];
+                }
+            }
+            return children[children.size()-1]; // Last child
+        }
+
+        bool search(const DT& value){ // Search for a value in the MTree  
+            for (const auto& v : values) {
+                if (v == value) {
+                    return true;
+                }
+            }     
+            if(!is_leaf()){
+                for (auto child : children) {
+                    if (child->search(value)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } 
+
+        void remove(const DT& value){ // Delete a value from the MTree
+            auto it = values.begin();
+            for (; it != values.end(); ++it) {
+                if (*it == value) {
+                    // If found, remove the value from the current node
+                    values.erase(it);
+                    return;
+                }
+            }
+
+            // If value is not found in the current node, check children
+            if (!is_leaf()) {
+                bool found = false;
+                for (auto& child : children) {
+                    if (child != nullptr) {
+                        try {
+                            // Delegate the removal to the child node
+                            child->remove(value);
+                            found = true;
+                            break;
+                        } catch (const NotFoundException&) {
+                            // Continue searching in other children
+                        }
+                    }
+                }
+                // Throw exception if the value was not found in any child node
+                if (!found) {
+                    throw NotFoundException();
+                }
+            } else {
+                // If current node is a leaf and value was not found, throw exception
+                throw NotFoundException();
+            }
+        } 
+        void buildTree(vector<DT>& input_values){ // Build the tree from a sorted vector of values
+
+        //     if (input_values.size() <= M - 1) {
+        //             values = input_values;
+        //     } else {
+        //         int D = input_values.size() / M;
+        //         for (int i = 0; i < M; i++) {
+        //             int start = D * i;
+        //             //cout << "start: " << start << " - ";
+        //             int end;
+        //             if (i == M - 1) {
+        //                 end = input_values.size() - 1;
+        //                 //cout << "end: " << end << endl;
+        //             } else {
+        //                 end = start + D - 1;
+        //                 //cout << "end: " << end << endl;
+        //                 values.push_back(input_values[end]);
+        //             }
+        //             vector<DT> child_values(input_values.begin() + start, input_values.begin() + end + 1);
+        //             MTree<DT>* child = new MTree<DT>(M);
+        //             child->buildTree(child_values);
+        //             children.push_back(child);
+        // }
+        
+            for(auto child : children){
+                delete child;
+            }
+
+            children.clear();
+            values.clear();
+
+            if(input_values.size() <= M - 1){
+                values = input_values;
+            } else {
+                int D = input_values.size() / M;
+                values.reserve(M - 1);
+                children.reserve(M);
+
+                for (int i = 0; i < M; i++) {
+                    int start = i * D;
+                    int end = (i == M - 1) ? input_values.size() - 1 : start + D - 1;
+
+                    if (i != M - 1) {
+                        values.push_back(input_values[end]);
+                    }
+
+                    vector<DT> child_values(input_values.begin() + start, input_values.begin() + end + 1);
+                    MTree<DT>* child = new MTree<DT>(M);
+                    child->buildTree(child_values);
+                    children.push_back(child);
+                }
+            }
+        } 
+        vector<DT>& collect_values(){  // Collect values from all leaf nodes
+            // vector<DT>* myValues = new vector<DT>();
+            // for(auto value : values){
+            //     myValues->push_back(value);
+            // }
+            // for(auto child : children){
+            //     vector<DT>& child_values = child->collect_values();
+            //     for(auto value : child_values){
+            //         myValues->push_back(value);
+            //     }
+            // }
+            // return *myValues;
+
+            vector<DT> result;
+            collect_helper(result);
+            return result;
+        }
+
+        void collect_helper(vector<DT>& result) {
+            if (is_leaf()) {
+                result.insert(result.end(), values.begin(), values.end());
+            } else {
+            for (auto& child : children) {
+                        child->collect_helper(result);
+                }
+            }
+        }
+
+        bool find (DT& value) { 
         for (const DT& v : values) {
-            if (v == value) {
-                return true;
+                if (v == value) {
+                    return true;
+                }
             }
-        }
-
-        for (MTree* child : children) {
-            if (child->search(value)) {
-                return true;
+            for (const auto& child : children) {
+                if (child->find(value)) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
-    }
-
-    void buildTree(vector<DT>& input_values) {
-        for (DT value : input_values) {
-            insert(value);
-        }
-    }
-
-    bool find(DT value) const {
-        // Look for value in the current node
-        for (const DT& v : values) {
-            if (v == value) {
-                return true;
-            }
-        }
-        // Look for value in child nodes
-        for (MTree* child : children) {
-            if (child->find(value)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    vector<DT>& collect_values() {
-        static vector<DT> collected_values;
-        collected_values.clear();
-
-        if (is_leaf()) {
-            collected_values = values;
-        } else {
-            for (MTree* child : children) {
-                vector<DT>& child_values = child->collect_values();
-                collected_values.insert(collected_values.end(), child_values.begin(), child_values.end());
-            }
-        }
-
-        return collected_values;
-    }
 };
 
+
+
+
 int main() {
-    int M;
-    cin >> M;
-
-    MTree<int>* myTree = new MTree<int>(M);
-
-    // Build the tree (dummy input for testing)
-    vector<int> mySortedValues = {5, 8, 10, 13, 14, 35, 37, 40}; // Example input
-    myTree->buildTree(mySortedValues);
-
+    int n; // number of numbers in the initial sorted array
+    int MValue;
     int numCommands;
-    cin >> numCommands; // Read the number of commands
+    char command;
+    int value;
 
-    // Read each command and process it
+    cin >> n; // Read the number of numbers in the initial sorted array
+    vector<int> mySortedValues(n);
+    for (int i = 0; i < n; i++) {
+        cin >> mySortedValues[i];
+    }
+
+    cin >> MValue; // Read the M value
+    MTree<int>* myTree = new MTree<int>(MValue);
+    (*myTree).buildTree(mySortedValues);
+
+    cin >> numCommands; // Read the number of commands   
+    // /************** Read each command Process ***************//
+    
     for (int i = 0; i < numCommands; i++) {
-        char command;
-        int value;
         cin >> command; // Read the command type
         switch (command) {
         case 'I': { // Insert
             cin >> value;
             try {
-                myTree->insert(value);
-            } catch (duplicateInsertion& e) {
-                cout << "The value = " << value << " already in the tree." << endl;
+                (*myTree).insert(value);
+                mySortedValues.push_back(value);
+            }
+            catch (duplicateInsertion& e) {
+                cout << "The value = " << value <<  " already in the tree. " << endl;
+                // continue;
             }
             break;
         }
-
+        
         case 'R': { // Remove
             cin >> value;
             try {
-                myTree->remove(value);
-            } catch (NotFoundException& e) {
+                (*myTree).remove(value);
+                cout << "The value = " << value << " has been removed." << endl;
+                    auto it = lower_bound(mySortedValues.begin(), mySortedValues.end(), value);
+                    // Check if the value was found
+                    if (it != mySortedValues.end() && *it == value) {
+                        // Remove the value if found
+                        mySortedValues.erase(it);
+                    }
+            }
+            catch (NotFoundException& e) {
                 cout << "The value = " << value << " not found." << endl;
             }
             break;
         }
-
         case 'F': { // Find
             cin >> value;
-            if (myTree->find(value)) {
-                cout << "The element with value = " << value << " was found." << endl;
-            } else {
-                cout << "The element with value = " << value << " not found." << endl;
+            if ((*myTree).find(value)){
+                cout << "The element with value = " << value << " was found."<< endl;
+            } else{
+                cout << "The element with value = " << value << " not found."<< endl;
             }
             break;
         }
-
-        case 'B': { // Rebuild tree
-            vector<int> myValues = myTree->collect_values();
-            myTree->buildTree(myValues);
+        case 'B': { // rebuild tree
+            vector<int> myValues = (*myTree).collect_values();
+            (*myTree).buildTree (myValues);
+            cout << "The tree has been rebuilt." << endl;
             break;
         }
-
         default:
             cout << "Invalid command!" << endl;
+        }
+    }
+
+    // Final List
+    for(int i =0; i < mySortedValues.size(); i++){
+        cout << mySortedValues[i] << " ";
+        if((i+1)%20 ==0){
+            cout << endl;
         }
     }
 
@@ -215,8 +344,31 @@ int main() {
     return 0;
 }
 
+
+
+/*LLM and GitHub Copilot Usage Documentation :
+
+Prompt 1:
+
+Answer:
+
+Explanation:
+
+*/
+
+
+/* Debugging and Testing Plan :
+
+*/
+
+
+
+
+
+
 /*
 cd Project\Project 4
 g++ test.cpp
 a.exe < input1.txt
 */
+

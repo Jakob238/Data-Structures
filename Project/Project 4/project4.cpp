@@ -110,7 +110,7 @@ class MTree {
             return children[children.size()-1]; // Last child
         }
 
-        bool search(const DT& value){ // Search for a value in the MTree  
+        bool search(const DT& value) const { // Search for a value in the MTree  
             for (const auto& v : values) {
                 if (v == value) {
                     return true;
@@ -127,47 +127,61 @@ class MTree {
         } 
 
         void remove(const DT& value){ // Delete a value from the MTree
-            if(!search(value)){
-                throw NotFoundException();
+            auto it = values.begin();
+            for (; it != values.end(); ++it) {
+                if (*it == value) {
+                    // If found, remove the value from the current node
+                    values.erase(it);
+                    return;
+                }
             }
-            if (is_leaf()) {
-                for(int i = 0; i < values.size(); i++){
-                    if(values[i] == value){
-                        values.erase(values.begin() + i);
-                        return;
+
+            // If value is not found in the current node, check children
+            if (!is_leaf()) {
+                bool found = false;
+                for (auto& child : children) {
+                    if (child != nullptr) {
+                        try {
+                            // Delegate the removal to the child node
+                            child->remove(value);
+                            found = true;
+                            break;
+                        } catch (const NotFoundException&) {
+                            // Continue searching in other children
+                        }
                     }
                 }
+                // Throw exception if the value was not found in any child node
+                if (!found) {
+                    throw NotFoundException();
+                }
             } else {
-                MTree* child = find_child(value);
-                child->remove(value);
+                // If current node is a leaf and value was not found, throw exception
+                throw NotFoundException();
             }
         } 
-        void buildTree(vector<DT>& input_values){ // Build the tree
-            // values = input_values;
-            // for (DT value : values) {
-            //     insert(value);
-            // }
+        void buildTree(vector<DT>& input_values){ // Build the tree from a sorted vector of values
 
             if (input_values.size() <= M - 1) {
                     values = input_values;
             } else {
-            int D = input_values.size() / M;
-            for (int i = 0; i < M; i++) {
-                int start = D * i;
-                //cout << "start: " << start << " - ";
-                int end;
-                if (i == M - 1) {
-                    end = input_values.size() - 1;
-                    //cout << "end: " << end << endl;
-                } else {
-                    end = start + D - 1;
-                    //cout << "end: " << end << endl;
-                    values.push_back(input_values[end]);
-                }
-                vector<DT> child_values(input_values.begin() + start, input_values.begin() + end + 1);
-                MTree<DT>* child = new MTree<DT>(M);
-                child->buildTree(child_values);
-                children.push_back(child);
+                int D = input_values.size() / M;
+                for (int i = 0; i < M; i++) {
+                    int start = D * i;
+                    //cout << "start: " << start << " - ";
+                    int end;
+                    if (i == M - 1) {
+                        end = input_values.size() - 1;
+                        //cout << "end: " << end << endl;
+                    } else {
+                        end = start + D - 1;
+                        //cout << "end: " << end << endl;
+                        values.push_back(input_values[end]);
+                    }
+                    vector<DT> child_values(input_values.begin() + start, input_values.begin() + end + 1);
+                    MTree<DT>* child = new MTree<DT>(M);
+                    child->buildTree(child_values);
+                    children.push_back(child);
         }
     }
         } 
@@ -183,7 +197,9 @@ class MTree {
                 }
             }
             return *myValues;
+
         }
+
         bool find (DT& value) const {
             for (const DT& v : values) {
                 if (v == value) {
@@ -196,6 +212,8 @@ class MTree {
                 }
             }
             return false;
+        
+        // return search(value);
         }
 };
 
@@ -219,16 +237,7 @@ int main() {
     MTree<int>* myTree = new MTree<int>(MValue);
     (*myTree).buildTree(mySortedValues);
 
-    //read n numbers from the input and add them to the vector mySortedValues
-    //Get the M value
-    // int M;
-    // cin >> M;
-    // MTree<int>* myTree = new MTree<int>(M);
-    
-    // //Build the tree
-    // (*myTree).buildTree (mySortedValues);
-    cin >> numCommands; // Read the number of commands
-    
+    cin >> numCommands; // Read the number of commands   
     // /************** Read each command Process ***************//
     
     for (int i = 0; i < numCommands; i++) {
@@ -238,6 +247,7 @@ int main() {
             cin >> value;
             try {
                 (*myTree).insert(value);
+                // mySortedValues.push_back(value);
             }
             catch (duplicateInsertion& e) {
                 cout << "The value = " << value <<  " already in the tree. " << endl;
@@ -251,6 +261,13 @@ int main() {
             try {
                 (*myTree).remove(value);
                 cout << "The value = " << value << " has been removed." << endl;
+                // for (auto it = mySortedValues.begin(); it != mySortedValues.end(); ) {
+                //     if (*it == value) {
+                //         it = mySortedValues.erase(it);  // Erase the element and move the iterator to the next
+                //     } else {
+                //         ++it;  // Otherwise, just move to the next element
+                //     }
+                // }
             }
             catch (NotFoundException& e) {
                 cout << "The value = " << value << " not found." << endl;
@@ -276,6 +293,15 @@ int main() {
             cout << "Invalid command!" << endl;
         }
     }
+
+    // Final List
+    // for(int i =0; i < mySortedValues.size(); i++){
+    //     cout << mySortedValues[i] << " ";
+    //     if((i+1)%20 ==0){
+    //         cout << endl;
+    //     }
+    // }
+
     delete myTree;
     return 0;
 }
