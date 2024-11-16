@@ -45,6 +45,7 @@ class MTree {
             for (auto child : children) {
                 delete child;
             }
+            children.clear();
         }
 
         bool is_leaf() const{ // Check if the current node is a leaf
@@ -161,10 +162,10 @@ class MTree {
             }
         } 
         void buildTree(vector<DT>& input_values){ // Build the tree from a sorted vector of values
-            values.clear();
             for(int i = 0; i < children.size(); i++){
                 delete children[i];
             }
+            values.clear();
             children.clear();
 
             if (input_values.size() <= M - 1) {
@@ -206,20 +207,36 @@ class MTree {
         }
 
         bool find (DT& value) const {
+            // for (const DT& v : values) {
+            //     if (v == value) {
+            //         return true;
+            //     }
+            // }
+            // for (const auto& child : children) {
+            //     if (child->find(value)) {
+            //         return true;
+            //     }
+            // }
+            // return false;
+        
             for (const DT& v : values) {
                 if (v == value) {
                     return true;
                 }
             }
-            for (const auto& child : children) {
-                if (child->find(value)) {
-                    return true;
+
+            // Traverse children only if present
+            if (!is_leaf()) {
+                for (const auto& child : children) {
+                    if (child && child->find(value)) {
+                        return true;
+                    }
                 }
             }
+
             return false;
-        
-        // return search(value);
         }
+
 };
 
 
@@ -307,6 +324,8 @@ int main() {
         }
     }
 
+    
+
     delete myTree;
     return 0;
 }
@@ -335,4 +354,4 @@ a.exe < input1.txt
 */
 
 
-// Finding GHost Variable 635 so check find method
+// Finding Ghost Variable 635 so check find method
