@@ -53,7 +53,7 @@ MTree<DT>::~MTree(){
 }
 
 
-// /************** Implement the MTree class here ***************//
+// /************** Implement the MTree Methods here ***************//
 
 //Is Leaf - Checks if the current node is a leaf
 template <class DT>
@@ -73,7 +73,7 @@ void MTree<DT>::insert(const DT& value){
         if(values.size() < M - 1){
             //Insert the value in the correct position
             values.push_back(value);
-            for(size_t i = 0; i < values.size(); i++){
+            for(int i = 1; i < values.size(); i++){
                 DT current = values[i];
                 int j = i - 1;
                 while(j >= 0 && values[j] > current){
@@ -105,9 +105,9 @@ void MTree<DT>::split_node(){
     DT midValue = values[midIndex];
     MTree* newChild = new MTree(M);
 
+    //Assign the middle value to the current node
     newChild->values.assign(values.begin() + midIndex + 1, values.end());
-    values.resize(midIndex+1);
-
+    values.resize(midIndex);
     //If the node is not a leaf, assign the children to the new child
     if(!is_leaf()){
         newChild->children.assign(children.begin() + midIndex + 1, children.end());
@@ -137,6 +137,7 @@ bool MTree<DT>::search(const DT& value){
             }
         }
     } 
+    //If the current node is not a leaf, find the child and recursively search
     else{
         return find_child(value)->search(value);
     }
@@ -160,19 +161,20 @@ void MTree<DT>::remove(const DT& value){
             }
         }   
     } 
+    // if the current node is not a leaf, find the child and recursively remove from there
     else{
         MTree* child = find_child(value);
         child->remove(value);
     }
 
-    vector<DT> all_values = collect_values();
-    buildTree(all_values);
+    vector<DT> every_value = collect_values();
+    buildTree(every_value);
 }
 
 //Build Tree - Build the MTree from a list of values
 template <class DT>
 void MTree<DT>::buildTree(const vector<DT>& input_values){
-    // delete all children and clear the values
+    // Delete all children and clear the values
     for (auto& child : children) {
         delete child;
     }
@@ -206,19 +208,23 @@ void MTree<DT>::buildTree(const vector<DT>& input_values){
 //Collect Values - Collect all values from the MTree
 template<class DT>
 vector<DT>& MTree<DT>::collect_values(){
-    // if the current node is a leaf, return the values and if not, collect the values from the children
-    vector<DT>* myValues = new vector<DT>();
+    // create a vector to store the values
+    vector<DT>* collectedValues = new vector<DT>();
+
+    // if the current node is a leaf, return the values
     if(is_leaf()){
        for(int i = 0; i < values.size(); i++){
-           myValues->push_back(values[i]);
+           collectedValues->push_back(values[i]);
        }
-    } else{
+    } 
+    // if the current node is not a leaf, collect the values from the children
+    else{
        for(auto child : children){
-           vector<DT>& c_num = child->collect_values();
-            myValues->insert(myValues->end(), c_num.begin(), c_num.end());
+            vector<DT>& c_num = child->collect_values();
+            collectedValues->insert(collectedValues->end(), c_num.begin(), c_num.end());
        }
    }
-   return *myValues;
+   return *collectedValues;
 }
 
 //Find - Find a value in the MTree
@@ -308,6 +314,7 @@ int main() {
     }
     cout << endl;
 
+    // Clean up memory
     delete myTree;
     return 0;
 }
