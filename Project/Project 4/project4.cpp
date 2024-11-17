@@ -73,26 +73,25 @@ void MTree<DT>::insert(const DT& value){
         if(values.size() < M - 1){
             //Insert the value in the correct position
             values.push_back(value);
-            for(int i = 1; i < values.size(); i++){
-                DT current = values[i];
-                int j = i - 1;
-                while(j >= 0 && values[j] > current){
-                    values[j+1] = values[j];
-                    j--;
+            // Sort the values directly by shifting values and inserting in order
+            for (int i = values.size() - 1; i > 0; i--) {
+                if (values[i] < values[i - 1]) {
+                    swap(values[i], values[i - 1]);
+                } else {
+                    break;
                 }
-                values[j + 1] = current;
             }
         } 
         //Splits the node if it exceeds capacity
         else {
             split_node();
+            // After splitting, insert into the correct child node
             find_child(value)->insert(value);
         }
     }
     
     // If it is not a leaf, it inserts the value in the correct child node
     else {
-        //Find the correct child to follow
         find_child(value)->insert(value);
     }
 }
