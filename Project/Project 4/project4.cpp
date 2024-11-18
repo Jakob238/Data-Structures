@@ -368,7 +368,7 @@ the method uses a vector<DT> to store the values and merges them from child node
 efficient way to collect values from the MTree, maintaining the structure  of the tree.
 
 
-Prompt 2: Using the code that I have already provided, create a remove function that removes a value from the MTree.
+Prompt 2: Using the code that I have already provided, create a insert function that removes a value from the MTree.
 
 Answer: Here's a breakdown of the insert method and how it works within the MTree class: The insert method is designed to add a 
 value to an M-ary tree (specifically, a tree that splits nodes when it exceeds a certain number of values). Here’s how it works:
