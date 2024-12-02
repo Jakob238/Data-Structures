@@ -2,72 +2,71 @@
 #include <fstream>
 #include <string>
 #include <map>
-#include <iterator>
-#include <cctype> // For isdigit
-#include <algorithm> // For all_of
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
-// Helper function to trim whitespace
-string trim(const string &str) {
-    size_t first = str.find_first_not_of(" \t\r\n");
-    size_t last = str.find_last_not_of(" \t\r\n");
-    return (first == string::npos || last == string::npos) ? "" : str.substr(first, last - first + 1);
-}
-
-// Helper function to safely convert string to int
-int safe_stoi(const string &str) {
-    string trimmed = trim(str);
-    if (trimmed.empty() || !all_of(trimmed.begin(), trimmed.end(), ::isdigit)) {
-        throw invalid_argument("Invalid integer string: " + str);
-    }
-    return stoi(trimmed);
+// Comparator function for sorting tokens by frequency and alphabetically
+bool sortByFrequency(const pair<string, int>& a, const pair<string, int>& b) {
+    if (a.second == b.second)
+        return a.first < b.first; // Alphabetical order for ties
+    return a.second > b.second;  // Descending frequency
 }
 
 int main() {
-    string tokensLine, indicesLine, separatorLine;
+    // --- Encoding Section ---
+    map<string, int> tokenFrequency;  // Tracks frequency of tokens
+    map<int, string> originalTokens; // Stores original order of tokens
+    string token;
+    int position = 1;                // Position to track token order
 
-    // Read the line containing tokens
-    getline(cin, tokensLine);
-
-    // Read the separator line (asterisks)
-    getline(cin, separatorLine);
-
-    // Read the line containing encoded indices
-    getline(cin, indicesLine);
-
-    // Step 1: Parse the tokens
-    map<int, string> sortedTokens;
-    int tokenIndex = 0;
-    size_t pos = 0, start = 0;
-    while ((pos = tokensLine.find(' ', start)) != string::npos) {
-        string token = tokensLine.substr(start, pos - start);
-        token = trim(token);
-        sortedTokens[++tokenIndex] = token;
-        start = pos + 1;
+    // Read tokens from input
+    while (cin >> token) {
+        if (!token.empty()) {
+            tokenFrequency[token]++;        // Increment frequency
+            originalTokens[position++] = token; // Store token with its position
+        }
     }
-    sortedTokens[++tokenIndex] = trim(tokensLine.substr(start));
 
-    // Step 2: Parse the encoded indices
-    map<int, int> encodedIndices;
-    int indexPosition = 0;
-    start = 0;
-    while ((pos = indicesLine.find(' ', start)) != string::npos) {
-        string indexStr = indicesLine.substr(start, pos - start);
-        int index = safe_stoi(indexStr);
-        encodedIndices[++indexPosition] = index;
-        start = pos + 1;
+    // Copy token-frequency pairs into an array for sorting
+    pair<string, int> sortedTokens[1000]; // Assume no more than 1000 unique tokens
+    int sortedIndex = 0;
+    for (const auto& pair : tokenFrequency) {
+        sortedTokens[sortedIndex++] = pair;
     }
-    encodedIndices[++indexPosition] = safe_stoi(indicesLine.substr(start));
 
-    // Step 3: Reconstruct and output the original text
-    for (int i = 1; i <= indexPosition; ++i) {
+    // Sort the array of token-frequency pairs
+    sort(sortedTokens, sortedTokens + sortedIndex, sortByFrequency);
+
+    // Map each token to its rank in the sorted order
+    map<string, int> tokenToIndex;
+    vector<string> sortedTokenList; // To store sorted tokens in order
+    for (int i = 0; i < sortedIndex; ++i) {
+        tokenToIndex[sortedTokens[i].first] = i + 1;
+        sortedTokenList.push_back(sortedTokens[i].first);
+    }
+
+    // Encode indices based on original order
+    vector<int> encodedIndices;
+    for (const auto& pair : originalTokens) {
+        encodedIndices.push_back(tokenToIndex[pair.second]);
+    }
+
+    // --- Decoding Section ---
+    map<int, string> sortedTokenMap; // Map for decoding sorted tokens
+    for (size_t i = 0; i < sortedTokenList.size(); ++i) {
+        sortedTokenMap[i + 1] = sortedTokenList[i];
+    }
+
+    // Reconstruct and output the original text
+    for (size_t i = 0; i < encodedIndices.size(); ++i) {
         int tokenIndex = encodedIndices[i] - 1; // Convert to 0-based index
-        cout << sortedTokens[tokenIndex + 1];
+        cout << sortedTokenMap[tokenIndex + 1];
 
         // Add space unless it's the end of the sequence or punctuation
-        if (i < indexPosition) {
-            string nextToken = sortedTokens[encodedIndices[i + 1]];
+        if (i < encodedIndices.size() - 1) {
+            string nextToken = sortedTokenMap[encodedIndices[i + 1]];
             if (nextToken != "." && nextToken != "," && nextToken != "?" &&
                 nextToken != ":" && nextToken != ";") {
                 cout << " ";
@@ -79,9 +78,8 @@ int main() {
     return 0;
 }
 
-
 /*
 cd Project\Project 5
 g++ bonustest.cpp
-a.exe < output1.txt
+a.exe < input1.txt
 */
